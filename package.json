@@ -1,0 +1,123 @@
+{
+  "name": "svg-show",
+  "displayName": "SVG Preview",
+  "description": "Preview SVG files and inline SVG strings with hover and gutter decorations",
+  "version": "0.0.1",
+  "publisher": "svg-preview",
+  "icon": "images/icon.png",
+  "engines": {
+    "vscode": "^1.107.0"
+  },
+  "categories": [
+    "Visualization",
+    "Other"
+  ],
+  "keywords": [
+    "svg",
+    "preview",
+    "icon",
+    "gutter",
+    "hover"
+  ],
+  "activationEvents": [
+    "onLanguage:xml",
+    "onLanguage:html",
+    "onLanguage:javascript",
+    "onLanguage:typescript",
+    "onLanguage:javascriptreact",
+    "onLanguage:typescriptreact",
+    "onLanguage:vue",
+    "onLanguage:svelte",
+    "onLanguage:php",
+    "onLanguage:python",
+    "onLanguage:ruby",
+    "onLanguage:java",
+    "onLanguage:csharp",
+    "onLanguage:css",
+    "onLanguage:scss",
+    "onLanguage:less",
+    "onLanguage:json",
+    "onLanguage:markdown"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "svg-show.refresh",
+        "title": "SVG Preview: Refresh Decorations",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "svg-show.goToLine",
+        "title": "Go to SVG line"
+      },
+      {
+        "command": "svg-show.showPreview",
+        "title": "SVG: Show Preview in Sidebar",
+        "icon": "$(eye)"
+      }
+    ],
+    "views": {
+      "explorer": [
+        {
+          "id": "svgExplorer",
+          "name": "SVG Preview",
+          "when": "resourceExtname == .svg || resourceExtname == .ts || resourceExtname == .js || resourceExtname == .tsx || resourceExtname == .jsx || resourceExtname == .html || resourceExtname == .vue || resourceExtname == .svelte"
+        },
+        {
+          "type": "webview",
+          "id": "svgPreviewView",
+          "name": "SVG Preview Viewer"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "svg-show.refresh",
+          "when": "view == svgExplorer",
+          "group": "navigation"
+        },
+        {
+          "command": "svg-show.showPreview",
+          "when": "view == svgExplorer",
+          "group": "navigation"
+        }
+      ]
+    },
+    "languages": [
+      {
+        "id": "svg",
+        "aliases": ["SVG", "svg"],
+        "extensions": [".svg"],
+        "mimetypes": ["image/svg+xml"]
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "npm run check-types && npm run lint && node esbuild.js",
+    "watch": "npm-run-all -p watch:*",
+    "watch:esbuild": "node esbuild.js --watch",
+    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
+    "package": "npm run check-types && npm run lint && node esbuild.js --production",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "pretest": "npm run compile-tests && npm run compile && npm run lint",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.107.0",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "22.x",
+    "typescript-eslint": "^8.48.1",
+    "eslint": "^9.39.1",
+    "esbuild": "^0.27.1",
+    "npm-run-all": "^4.1.5",
+    "typescript": "^5.9.3",
+    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-electron": "^2.5.2"
+  }
+}
