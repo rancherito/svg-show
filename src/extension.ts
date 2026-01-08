@@ -315,12 +315,6 @@ class SvgPreviewViewProvider implements vscode.WebviewViewProvider {
 					<div class="svg-container">
 						<img src="${dataUri}" alt="SVG ${index + 1}" class="svg-preview" />
 					</div>
-					<div class="svg-actions">
-						<button class="action-button" onclick="copyCode(${index})">📋 Copiar</button>
-					</div>
-					<div class="svg-code" id="code-${index}">
-						<pre><code>${item.svg.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</code></pre>
-					</div>
 				</div>`;
 			} catch (error) {
 				console.error('Error creating SVG item:', error);
@@ -537,71 +531,6 @@ class SvgPreviewViewProvider implements vscode.WebviewViewProvider {
 }
 
 /**
- * Extrae contenido SVG de una línea de código
- */
-function extractSvgFromLine(lineText: string): string | null {
-	// Buscar SVG que empiece en esta línea
-	const svgStartMatch = lineText.match(SVG_START_REGEX);
-	if (svgStartMatch) {
-		return null; // Marcar que hay un SVG que empieza aquí
-	}
-	return null;
-}
-
-/**
- * Busca SVG completo desde una posición
- */
-function findCompleteSvg(document: vscode.TextDocument, startLine: number): { svg: string; endLine: number } | null {
-	let svgContent = '';
-	let depth = 0;
-	let inSvg = false;
-	let endLine = startLine;
-
-	for (let i = startLine; i < document.lineCount; i++) {
-		const lineText = document.lineAt(i).text;
-		
-		for (let j = 0; j < lineText.length; j++) {
-			const char = lineText[j];
-			
-			if (!inSvg) {
-				// Buscar inicio de <svg
-				const remaining = lineText.substring(j);
-				if (remaining.match(/^<svg/i)) {
-					inSvg = true;
-					depth = 1;
-					svgContent = '<svg';
-					j += 3; // saltar "svg"
-					continue;
-				}
-			} else {
-				svgContent += char;
-				
-				// Detectar tags de apertura y cierre
-				if (char === '<') {
-					const remaining = lineText.substring(j);
-					if (remaining.match(/^<\/svg>/i)) {
-						depth--;
-						if (depth === 0) {
-							svgContent += '/svg>';
-							endLine = i;
-							return { svg: svgContent, endLine };
-						}
-					} else if (remaining.match(/^<svg/i)) {
-						depth++;
-					}
-				}
-			}
-		}
-		
-		if (inSvg) {
-			svgContent += '\n';
-		}
-	}
-	
-	return null;
-}
-
-/**
  * Extrae SVG de un string entre comillas o template literal
  */
 function extractSvgFromText(text: string): string | null {
@@ -633,9 +562,19 @@ function createSvgDataUri(svgContent: string, size: number = 16): vscode.Uri {
 			throw new Error('SVG content is empty after cleaning');
 		}
 		
-		// Asegurar que tiene viewBox o width/height para escalar
-		if (!cleanSvg.includes('viewBox') && !cleanSvg.includes('width')) {
+		// Añadir namespace xmlns si no está presente
+		if (!cleanSvg.includes('xmlns')) {
+			cleanSvg = cleanSvg.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"');
+		}
+		
+		// Si tiene viewBox pero no dimensiones, añadir dimensiones basadas en size
+		if (cleanSvg.includes('viewBox') && !cleanSvg.includes('width=')) {
 			cleanSvg = cleanSvg.replace('<svg', `<svg width="${size}" height="${size}"`);
+		}
+		
+		// Si no tiene ni viewBox ni dimensiones, añadir ambos
+		if (!cleanSvg.includes('viewBox') && !cleanSvg.includes('width=')) {
+			cleanSvg = cleanSvg.replace('<svg', `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"`);
 		}
 		
 		// Encodear para data URI

@@ -66,12 +66,14 @@ npm install
 # Compilar
 npm run compile
 
-# Modo watch
+# Modo watch (recompila automáticamente)
 npm run watch
-
-# Ejecutar tests
-npm test
 ```
+
+### Estructura Simple
+- `src/extension.ts` - Código principal de la extensión
+- `package.json` - Configuración y metadata
+- `tsconfig.json` - Configuración de TypeScript
 
 ## 📝 Notas
 
